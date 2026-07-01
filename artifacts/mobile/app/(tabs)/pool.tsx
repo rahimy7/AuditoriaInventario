@@ -111,7 +111,15 @@ export default function PoolScreen() {
           {filtered.length} {filtered.length === 1 ? "auditoría" : "auditorías"}
         </Text>
         {filtered.map((audit) => (
-          <AuditCard key={audit.id} audit={audit} />
+          <AuditCard
+            key={audit.id}
+            audit={audit}
+            onPress={
+              audit.blindCount && (user.role === "auxiliar" || user.role === "supervisor")
+                ? () => router.push(`/blind-count/${audit.id}`)
+                : undefined
+            }
+          />
         ))}
         {filtered.length === 0 && (
           <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}>

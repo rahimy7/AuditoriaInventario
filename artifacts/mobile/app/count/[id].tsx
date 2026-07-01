@@ -13,14 +13,15 @@ import { useColors } from "@/hooks/useColors";
 import StatusBadge from "@/components/StatusBadge";
 
 export default function CountScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, blind, prefillQty } = useLocalSearchParams<{ id: string; blind?: string; prefillQty?: string }>();
+  const isBlind = blind === "true";
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { countItems, saveCount, submitCount } = useAuditContext();
   const router = useRouter();
 
   const item = countItems.find((i) => i.id === id);
-  const [qty, setQty] = useState(item?.countedQty?.toString() ?? "");
+  const [qty, setQty] = useState(prefillQty ?? item?.countedQty?.toString() ?? "");
   const [notes, setNotes] = useState(item?.notes ?? "");
   const [photos, setPhotos] = useState<string[]>(item?.photos ?? []);
   const [isSaving, setIsSaving] = useState(false);
@@ -131,14 +132,24 @@ export default function CountScreen() {
             </View>
           </View>
 
-          {/* System Stock */}
-          <View style={[styles.stockCard, { backgroundColor: colors.infoLight, borderColor: `${colors.info}30` }]}>
-            <Feather name="database" size={16} color={colors.info} />
-            <View style={styles.stockInfo}>
-              <Text style={[styles.stockLabel, { color: colors.info }]}>Existencia en Sistema</Text>
-              <Text style={[styles.stockNum, { color: colors.info }]}>{item.systemQty} {item.product.unit}</Text>
+          {/* System Stock — hidden in blind count mode */}
+          {isBlind ? (
+            <View style={[styles.stockCard, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+              <Feather name="eye-off" size={16} color={colors.mutedForeground} />
+              <View style={styles.stockInfo}>
+                <Text style={[styles.stockLabel, { color: colors.mutedForeground }]}>Modo Conteo a Ciegas</Text>
+                <Text style={[styles.stockHidden, { color: colors.mutedForeground }]}>Stock del sistema oculto</Text>
+              </View>
             </View>
-          </View>
+          ) : (
+            <View style={[styles.stockCard, { backgroundColor: colors.infoLight, borderColor: `${colors.info}30` }]}>
+              <Feather name="database" size={16} color={colors.info} />
+              <View style={styles.stockInfo}>
+                <Text style={[styles.stockLabel, { color: colors.info }]}>Existencia en Sistema</Text>
+                <Text style={[styles.stockNum, { color: colors.info }]}>{item.systemQty} {item.product.unit}</Text>
+              </View>
+            </View>
+          )}
 
           {/* Count Input */}
           <View style={[styles.countCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -186,8 +197,8 @@ export default function CountScreen() {
               ))}
             </View>
 
-            {/* Difference indicator */}
-            {diff !== null && (
+            {/* Difference indicator — hidden in blind count mode */}
+            {!isBlind && diff !== null && (
               <View style={[styles.diffBox, { backgroundColor: hasDiff ? colors.errorLight : colors.successLight }]}>
                 <Feather
                   name={hasDiff ? (diff > 0 ? "trending-up" : "trending-down") : "check-circle"}
@@ -305,6 +316,7 @@ const styles = StyleSheet.create({
   stockInfo: { flex: 1 },
   stockLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
   stockNum: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  stockHidden: { fontSize: 13, fontFamily: "Inter_500Medium" },
   countCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 14 },
   countLabel: { fontSize: 15, fontFamily: "Inter_700Bold" },
   countRow: { flexDirection: "row", alignItems: "center", gap: 12 },

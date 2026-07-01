@@ -28,6 +28,7 @@ export default function CreateAuditScreen() {
   const [supervisorId, setSupervisorId] = useState("");
   const [selectedLines, setSelectedLines] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [blindCount, setBlindCount] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const supervisors = ALL_USERS.filter((u) => u.role === "supervisor");
@@ -61,6 +62,7 @@ export default function CreateAuditScreen() {
       createdBy: user?.id ?? "u5",
       lines: selectedLines,
       categories: selectedCategories,
+      blindCount,
     });
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsCreating(false);
@@ -149,6 +151,28 @@ export default function CreateAuditScreen() {
             </View>
           </View>
 
+          {/* Blind Count toggle */}
+          <View style={[styles.toggleCard, { backgroundColor: blindCount ? "#EDE9FE" : colors.muted, borderColor: blindCount ? "#7C3AED" : colors.border }]}>
+            <View style={styles.toggleLeft}>
+              <View style={[styles.toggleIcon, { backgroundColor: blindCount ? "#7C3AED" : colors.surface }]}>
+                <Feather name="eye-off" size={18} color={blindCount ? "#FFFFFF" : colors.mutedForeground} />
+              </View>
+              <View style={styles.toggleInfo}>
+                <Text style={[styles.toggleTitle, { color: blindCount ? "#4C1D95" : colors.text }]}>Conteo a Ciegas</Text>
+                <Text style={[styles.toggleDesc, { color: blindCount ? "#6D28D9" : colors.mutedForeground }]}>
+                  Auxiliares y supervisores no ven el stock del sistema
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.toggleSwitch, { backgroundColor: blindCount ? "#7C3AED" : colors.border }]}
+              onPress={() => setBlindCount((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.toggleThumb, { transform: [{ translateX: blindCount ? 18 : 0 }] }]} />
+            </TouchableOpacity>
+          </View>
+
           {/* Lines */}
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.text }]}>Líneas de Productos</Text>
@@ -218,6 +242,14 @@ const styles = StyleSheet.create({
   chipGroup: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   chipText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  toggleCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14, borderRadius: 16, borderWidth: 1.5, gap: 12 },
+  toggleLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  toggleIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  toggleInfo: { flex: 1, gap: 2 },
+  toggleTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  toggleDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  toggleSwitch: { width: 46, height: 26, borderRadius: 13, padding: 3, justifyContent: "center" },
+  toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#FFFFFF" },
   supervisorChip: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 2, width: "100%" },
   supAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   supAvatarText: { fontSize: 16, fontFamily: "Inter_700Bold" },

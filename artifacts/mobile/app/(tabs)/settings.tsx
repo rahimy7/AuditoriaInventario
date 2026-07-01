@@ -5,6 +5,7 @@ import React from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth, type UserRole } from "@/contexts/AuthContext";
+import { useAuditContext } from "@/contexts/AuditContext";
 import { useColors } from "@/hooks/useColors";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -23,6 +24,7 @@ export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  const { resetData } = useAuditContext();
   const router = useRouter();
   const [notifications, setNotifications] = React.useState(true);
   const [offlineMode, setOfflineMode] = React.useState(true);
@@ -138,6 +140,35 @@ export default function SettingsScreen() {
               <Text style={[styles.settingValue, { color: colors.mutedForeground }]}>v1.0.0</Text>
               <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
             </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: colors.divider }]}
+            onPress={() => {
+              const doReset = async () => {
+                await resetData();
+                Alert.alert("Datos restablecidos", "Los datos demo han sido restablecidos. La auditoría de conteo a ciegas ya está disponible en el pool.");
+              };
+              if (Platform.OS !== "web") {
+                Alert.alert("Restablecer Datos Demo", "Esto restaurará las auditorías y conteos al estado inicial. ¿Continuar?", [
+                  { text: "Cancelar", style: "cancel" },
+                  { text: "Restablecer", style: "destructive", onPress: doReset },
+                ]);
+              } else {
+                doReset();
+              }
+            }}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: "#EDE9FE" }]}>
+                <Feather name="refresh-ccw" size={16} color="#7C3AED" />
+              </View>
+              <View>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Restablecer Datos Demo</Text>
+                <Text style={[styles.settingDesc, { color: colors.mutedForeground }]}>Restaura auditorías iniciales (incl. conteo a ciegas)</Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
           </TouchableOpacity>
 
           <TouchableOpacity

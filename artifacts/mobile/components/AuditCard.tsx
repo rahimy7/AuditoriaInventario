@@ -43,6 +43,15 @@ export default function AuditCard({ audit, onPress }: Props) {
           <Feather name="map-pin" size={12} color={colors.mutedForeground} />
           <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{audit.location}</Text>
         </View>
+        {audit.blindCount && (
+          <>
+            <View style={styles.metaDot} />
+            <View style={[styles.blindBadge, { backgroundColor: "#EDE9FE" }]}>
+              <Feather name="eye-off" size={10} color="#7C3AED" />
+              <Text style={[styles.blindBadgeText, { color: "#7C3AED" }]}>Ciegas</Text>
+            </View>
+          </>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -117,6 +126,18 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     backgroundColor: "#CBD5E1",
+  },
+  blindBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  blindBadgeText: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
   },
   footer: {
     flexDirection: "row",

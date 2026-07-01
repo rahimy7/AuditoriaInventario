@@ -33,6 +33,7 @@ function RootLayoutNav() {
       <Stack.Screen name="scanner" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="create-audit" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="blind-count/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

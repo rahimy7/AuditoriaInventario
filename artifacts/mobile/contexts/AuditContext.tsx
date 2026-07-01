@@ -48,6 +48,7 @@ export interface Audit {
   lines: string[];
   categories: string[];
   progress: number;
+  blindCount?: boolean;
 }
 
 export interface HistoryEntry {
@@ -92,6 +93,7 @@ const INITIAL_AUDITS: Audit[] = [
     lines: ["Ferretería"],
     categories: ["Herramientas", "Eléctricos"],
     progress: 62,
+    blindCount: true,
   },
   {
     id: "a2",
@@ -215,6 +217,7 @@ interface AuditContextValue {
   searchProducts: (query: string) => Product[];
   addCountItem: (auditId: string, product: Product, location: string, assignedTo: string) => Promise<void>;
   closeAudit: (auditId: string) => Promise<void>;
+  resetData: () => Promise<void>;
 }
 
 const AuditContext = createContext<AuditContextValue>({} as AuditContextValue);
@@ -348,13 +351,19 @@ export function AuditProvider({ children }: { children: React.ReactNode }) {
     await persist(updated, countItems);
   }, [audits, countItems, persist]);
 
+  const resetData = useCallback(async () => {
+    await AsyncStorage.multiRemove(["audits", "count_items"]);
+    setAudits(INITIAL_AUDITS);
+    setCountItems(INITIAL_COUNT_ITEMS);
+  }, []);
+
   return (
     <AuditContext.Provider value={{
       audits, countItems, users: ALL_USERS, isLoading,
       getAudit, getAuditItems, getUserAudits, getSupervisorAudits,
       createAudit, updateAuditStatus, assignUsers,
       saveCount, submitCount, reviewItem,
-      searchProducts, addCountItem, closeAudit,
+      searchProducts, addCountItem, closeAudit, resetData,
     }}>
       {children}
     </AuditContext.Provider>
