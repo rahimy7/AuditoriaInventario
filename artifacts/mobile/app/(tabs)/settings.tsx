@@ -26,6 +26,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [notifications, setNotifications] = React.useState(true);
   const [offlineMode, setOfflineMode] = React.useState(true);
+  const [confirmLogout, setConfirmLogout] = React.useState(false);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 + 84 : 110;
@@ -33,18 +34,24 @@ export default function SettingsScreen() {
   if (!user) return null;
 
   const handleLogout = () => {
-    Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar tu sesión?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Cerrar Sesión",
-        style: "destructive",
-        onPress: async () => {
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          await logout();
-          router.replace("/login");
+    if (Platform.OS !== "web") {
+      Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar tu sesión?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cerrar Sesión",
+          style: "destructive",
+          onPress: doLogout,
         },
-      },
-    ]);
+      ]);
+    } else {
+      setConfirmLogout(true);
+    }
+  };
+
+  const doLogout = async () => {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await logout();
+    router.replace("/login");
   };
 
   return (
@@ -164,14 +171,36 @@ export default function SettingsScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity
-          style={[styles.logoutBtn, { backgroundColor: colors.errorLight, borderColor: `${colors.error}30` }]}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
-          <Feather name="log-out" size={18} color={colors.error} />
-          <Text style={[styles.logoutText, { color: colors.error }]}>Cerrar Sesión</Text>
-        </TouchableOpacity>
+        {confirmLogout ? (
+          <View style={[styles.confirmBox, { backgroundColor: colors.errorLight, borderColor: colors.error }]}>
+            <Feather name="alert-triangle" size={20} color={colors.error} />
+            <Text style={[styles.confirmText, { color: colors.error }]}>¿Cerrar sesión?</Text>
+            <View style={styles.confirmBtns}>
+              <TouchableOpacity
+                style={[styles.confirmCancel, { borderColor: colors.border, backgroundColor: colors.card }]}
+                onPress={() => setConfirmLogout(false)}
+              >
+                <Text style={[styles.confirmCancelText, { color: colors.secondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmOk, { backgroundColor: colors.error }]}
+                onPress={doLogout}
+              >
+                <Feather name="log-out" size={14} color="#FFFFFF" />
+                <Text style={styles.confirmOkText}>Salir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.logoutBtn, { backgroundColor: colors.errorLight, borderColor: `${colors.error}30` }]}
+            onPress={handleLogout}
+            activeOpacity={0.8}
+          >
+            <Feather name="log-out" size={18} color={colors.error} />
+            <Text style={[styles.logoutText, { color: colors.error }]}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={[styles.version, { color: colors.mutedForeground }]}>InventControl © 2026</Text>
       </View>
@@ -207,5 +236,12 @@ const styles = StyleSheet.create({
   settingValue: { fontSize: 13, fontFamily: "Inter_400Regular" },
   logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, borderRadius: 16, borderWidth: 1 },
   logoutText: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
+  confirmBox: { borderRadius: 16, borderWidth: 1.5, padding: 16, gap: 10, alignItems: "center" },
+  confirmText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  confirmBtns: { flexDirection: "row", gap: 10, width: "100%" },
+  confirmCancel: { flex: 1, height: 44, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  confirmCancelText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  confirmOk: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 44, borderRadius: 12 },
+  confirmOkText: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
   version: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
 });
