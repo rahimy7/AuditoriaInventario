@@ -1,0 +1,133 @@
+Crea una aplicación móvil moderna para realizar conteos físicos de inventario, compatible con Android y iOS.
+
+La app debe permitir gestionar auditorías de inventario físico por almacén, ubicación, línea de productos y usuarios asignados. Debe tener una interfaz moderna, rápida, intuitiva y optimizada para trabajo en piso, con soporte para escaneo de código de barras, digitación manual de código y selección de productos desde catálogo.
+
+Roles del sistema:
+
+1. Auxiliar de conteo
+
+* Ver su pool de trabajo con auditorías asignadas.
+* Consultar productos asignados.
+* Escanear código de barras.
+* Digitar código manualmente.
+* Buscar producto por nombre, código, categoría o línea.
+* Registrar cantidad física contada.
+* Agregar observaciones.
+* Tomar foto como evidencia.
+* Guardar conteo en borrador.
+* Enviar trabajo al supervisor.
+* Ver estado del conteo: pendiente, en proceso, enviado, devuelto o aprobado.
+* Trabajar por almacén, ubicación, pasillo, góndola, estante o zona.
+* Soporte offline con sincronización automática al recuperar conexión.
+
+2. Supervisor
+
+* Ver pool de auditorías asignadas a su equipo.
+* Asignar productos, ubicaciones o líneas a auxiliares.
+* Ver avance del conteo en tiempo real.
+* Ver métricas por usuario, almacén, ubicación y categoría.
+* Revisar conteos enviados.
+* Aprobar, devolver o solicitar reconteo.
+* Comparar conteo físico vs existencia del sistema.
+* Ver diferencias, faltantes y sobrantes.
+* Agregar comentarios de revisión.
+* Bloquear edición luego de aprobar.
+* Generar alertas por diferencias críticas.
+
+3. Gerente
+
+* Ver dashboard global.
+* Métricas generales por almacén, usuario, auditoría, categoría y fecha.
+* Ver avance total de auditorías.
+* Ver productividad por usuario.
+* Ver diferencias valorizadas.
+* Ver productos con mayor diferencia.
+* Ver auditorías pendientes, en proceso, aprobadas y cerradas.
+* Gestionar usuarios y roles.
+* Crear y cerrar auditorías.
+* Exportar reportes en Excel y PDF.
+* Ver historial de conteos.
+* Consultar trazabilidad completa de cambios.
+
+Funciones principales:
+
+* Login seguro con usuario y contraseña.
+* Control de permisos por rol.
+* Dashboard inicial según rol.
+* Pool de trabajo por usuario.
+* Creación de auditorías de inventario.
+* Asignación de auditorías por usuario, almacén, ubicación, línea o categoría.
+* Consulta de productos.
+* Escaneo de código de barras con cámara.
+* Digitación manual de código.
+* Búsqueda avanzada de productos.
+* Conteo por producto, ubicación, lote o serie si aplica.
+* Soporte para múltiples almacenes.
+* Soporte para múltiples ubicaciones dentro de cada almacén.
+* Registro de cantidad física.
+* Registro de observaciones.
+* Evidencias con fotos.
+* Estados del flujo: creado, asignado, en proceso, enviado, en revisión, devuelto, aprobado y cerrado.
+* Métricas de avance.
+* Reconteo por diferencias.
+* Control de duplicidad de conteo.
+* Historial de acciones por usuario.
+* Sincronización offline/online.
+* Notificaciones push.
+* Reportes gerenciales.
+* Exportación Excel/PDF.
+* Integración futura con ERP, SQL Server, API REST o sistema NAV/Business Central.
+
+Pantallas necesarias:
+
+* Login.
+* Dashboard por rol.
+* Pool de trabajo.
+* Detalle de auditoría.
+* Vista de conteo.
+* Escáner de código de barras.
+* Búsqueda de productos.
+* Consulta de producto.
+* Envío de conteo.
+* Revisión de supervisor.
+* Métricas de avance.
+* Dashboard gerencial.
+* Gestión de usuarios.
+* Gestión de almacenes y ubicaciones.
+* Historial de auditoría.
+* Reportes.
+
+Diseño visual:
+
+* Estilo moderno, limpio y profesional.
+* Colores corporativos azul, blanco y gris.
+* Botones grandes para uso operativo.
+* Indicadores visuales de estado.
+* Barras de progreso.
+* Tarjetas de métricas.
+* Diseño responsive para teléfonos y tablets.
+* Modo oscuro opcional.
+* Experiencia rápida para conteos masivos.
+
+Modelo de datos sugerido:
+
+* Usuarios
+* Roles
+* Almacenes
+* Ubicaciones
+* Productos
+* Categorías
+* Líneas
+* Auditorías
+* Asignaciones
+* Conteos
+* Evidencias
+* Diferencias
+* Historial de cambios
+* Notificaciones
+
+Flujo general:
+
+El gerente crea una auditoría de inventario y define almacén, ubicación, línea o productos a contar. Luego asigna la auditoría al supervisor. El supervisor distribuye el trabajo entre auxiliares. Cada auxiliar ve su pool de trabajo, escanea o busca productos, registra cantidades físicas y envía el conteo. El supervisor revisa avances, valida diferencias y puede aprobar o devolver para reconteo. El gerente visualiza métricas globales, diferencias valorizadas, productividad y cierre final de la auditoría.
+
+La app debe estar preparada para crecer como sistema profesional de inventario físico empresarial, con seguridad, trazabilidad, reportes, múltiples almacenes, trabajo offline y control completo por roles.
