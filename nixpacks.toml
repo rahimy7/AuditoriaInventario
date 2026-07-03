@@ -8,7 +8,7 @@ NIXPACKS_NODE_VERSION = "22"
 cmds = ["npm install -g pnpm@11.3.0"]
 
 [phases.install]
-cmds = ["pnpm i --frozen-lockfile"]
+cmds = ["pnpm i --no-frozen-lockfile"]
 
 [phases.build]
 cmds = [
