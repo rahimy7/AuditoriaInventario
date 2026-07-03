@@ -2,7 +2,7 @@
   "expo": {
     "name": "InventControl",
     "slug": "mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -18,7 +18,11 @@
       "bundleIdentifier": "com.inventcontrol.mobile"
     },
     "android": {
-      "package": "com.inventcontrol.mobile"
+      "package": "com.inventcontrol.mobile",
+      "versionCode": 4,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/images/icon.png"
@@ -43,6 +47,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "31f98ed8-83b5-4aed-ae33-6fbd7ca2a754"
+      }
+    },
+    "owner": "rahimy"
   }
 }
