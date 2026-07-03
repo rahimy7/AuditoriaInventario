@@ -47,12 +47,6 @@ export default function LoginScreen() {
     }
   };
 
-  const DEMO_ACCOUNTS = [
-    { label: "Auxiliar", email: "auxiliar@inv.com" },
-    { label: "Supervisor", email: "supervisor@inv.com" },
-    { label: "Gerente", email: "gerente@inv.com" },
-  ];
-
   return (
     <LinearGradient colors={["#0D47A1", "#1565C0", "#1E88E5"]} style={styles.gradient}>
       <KeyboardAvoidingView
@@ -131,25 +125,6 @@ export default function LoginScreen() {
                 </>
               )}
             </TouchableOpacity>
-
-            <View style={styles.demoSection}>
-              <View style={styles.demoLine}>
-                <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                <Text style={[styles.demoLabel, { color: colors.mutedForeground }]}>Cuentas demo (clave: 1234)</Text>
-                <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              </View>
-              <View style={styles.demoBtns}>
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <TouchableOpacity
-                    key={acc.email}
-                    style={[styles.demoBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
-                    onPress={() => { setEmail(acc.email); setPassword("1234"); }}
-                  >
-                    <Text style={[styles.demoBtnText, { color: colors.primary }]}>{acc.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
           </View>
         </View>
       </KeyboardAvoidingView>

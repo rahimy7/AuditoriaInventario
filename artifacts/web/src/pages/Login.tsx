@@ -7,12 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 
-const DEMO = [
-  { label: "Auxiliar", email: "auxiliar@inv.com" },
-  { label: "Supervisor", email: "supervisor@inv.com" },
-  { label: "Gerente", email: "gerente@inv.com" },
-];
-
 export function LoginPage() {
   const { login } = useStore();
   const [, navigate] = useLocation();
@@ -78,25 +72,6 @@ export function LoginPage() {
           <Button type="submit" className="w-full" disabled={busy}>
             Iniciar sesión
           </Button>
-
-          <div className="pt-1">
-            <p className="mb-2 text-center text-xs text-muted-foreground">Cuentas de demostración (contraseña: 1234)</p>
-            <div className="grid grid-cols-3 gap-2">
-              {DEMO.map((d) => (
-                <button
-                  key={d.email}
-                  type="button"
-                  onClick={() => {
-                    setEmail(d.email);
-                    setPassword("1234");
-                  }}
-                  className="rounded-lg border bg-muted/50 px-2 py-2 text-xs font-medium text-foreground hover:bg-muted"
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </form>
       </div>
     </div>
