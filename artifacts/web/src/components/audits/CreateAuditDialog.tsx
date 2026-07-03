@@ -44,8 +44,18 @@ export function CreateAuditDialog({ open, onOpenChange }: { open: boolean; onOpe
     return storageLocations.filter((s) => s.warehouseId === wh.id && s.active).map((s) => s.name);
   }, [warehouses, storageLocations, warehouse]);
 
-  const supervisors = users.filter((u) => u.role === "supervisor" && u.active);
-  const auxiliares = users.filter((u) => u.role === "auxiliar" && u.active);
+  // Filter by warehouse when one is selected; show all otherwise
+  const supervisors = useMemo(
+    () => users.filter((u) => u.role === "supervisor" && u.active && (!warehouse || u.warehouse === warehouse)),
+    [users, warehouse],
+  );
+  const supervisorsAll = users.filter((u) => u.role === "supervisor" && u.active);
+
+  const auxiliares = useMemo(
+    () => users.filter((u) => u.role === "auxiliar" && u.active && (!warehouse || u.warehouse === warehouse)),
+    [users, warehouse],
+  );
+  const auxiliaresAll = users.filter((u) => u.role === "auxiliar" && u.active);
 
   const reset = () => {
     setName("");
@@ -104,7 +114,7 @@ export function CreateAuditDialog({ open, onOpenChange }: { open: boolean; onOpe
             </div>
             <div className="space-y-1.5">
               <Label>Almacén</Label>
-              <Select value={warehouse} onValueChange={(v) => { setWarehouse(v); setLocation(""); }}>
+              <Select value={warehouse} onValueChange={(v) => { setWarehouse(v); setLocation(""); setSupervisorId(""); setAssignees([]); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona almacén" />
                 </SelectTrigger>
@@ -133,29 +143,48 @@ export function CreateAuditDialog({ open, onOpenChange }: { open: boolean; onOpe
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Supervisor responsable</Label>
-              <Select value={supervisorId} onValueChange={setSupervisorId}>
+              <Select
+                value={supervisorId}
+                onValueChange={(v) => {
+                  setSupervisorId(v);
+                  if (!warehouse) {
+                    const sup = users.find((u) => u.id === v);
+                    if (sup?.warehouse) setWarehouse(sup.warehouse);
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona supervisor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {supervisors.map((s) => (
+                  {(supervisors.length > 0 ? supervisors : supervisorsAll).map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name} {s.warehouse ? `· ${s.warehouse}` : ""}
                     </SelectItem>
                   ))}
+                  {supervisors.length === 0 && warehouse && (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Sin supervisores para {warehouse}</div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label>Auxiliares asignados ({assignees.length})</Label>
+            <Label>
+              Auxiliares asignados ({assignees.length})
+              {warehouse && <span className="ml-1 font-normal text-muted-foreground text-xs">— filtrados por {warehouse}</span>}
+            </Label>
             <MultiSelect
-              options={auxiliares.map((a) => ({ value: a.id, label: a.name, hint: a.warehouse ?? "Sin almacén" }))}
+              options={(auxiliares.length > 0 ? auxiliares : auxiliaresAll).map((a) => ({
+                value: a.id,
+                label: a.name,
+                hint: a.warehouse ?? "Sin almacén",
+              }))}
               selected={assignees}
               onChange={setAssignees}
               placeholder="Selecciona auxiliares…"
-              emptyText="Sin auxiliares"
+              emptyText={warehouse ? `Sin auxiliares en ${warehouse}` : "Sin auxiliares"}
             />
           </div>
 

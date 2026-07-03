@@ -46,25 +46,29 @@ export function AuditDetailPage({ id }: { id: string }) {
   const [assignDraft, setAssignDraft] = useState<string[]>(audit?.assignedTo ?? []);
   const [itemQuery, setItemQuery] = useState("");
   const [itemStatus, setItemStatus] = useState<CountStatus | "todos">("todos");
+  const [itemAuxFilter, setItemAuxFilter] = useState<string>("todos");
   const [selected, setSelected] = useState<string[]>([]);
   const [reassignTo, setReassignTo] = useState<string>("");
   const [addOpen, setAddOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
 
-  const auxiliares = users.filter((u) => u.role === "auxiliar" && u.active);
+  // Auxiliares filtered to the audit's warehouse (fallback to all if none match)
+  const auxiliaresInWarehouse = users.filter((u) => u.role === "auxiliar" && u.active && u.warehouse === audit?.warehouse);
+  const auxiliares = auxiliaresInWarehouse.length > 0 ? auxiliaresInWarehouse : users.filter((u) => u.role === "auxiliar" && u.active);
 
   const filteredItems = useMemo(
     () =>
       items
         .filter((i) => itemStatus === "todos" || i.status === itemStatus)
+        .filter((i) => itemAuxFilter === "todos" || i.assignedTo === itemAuxFilter)
         .filter(
           (i) =>
             !itemQuery.trim() ||
             i.product.name.toLowerCase().includes(itemQuery.toLowerCase()) ||
             i.product.code.toLowerCase().includes(itemQuery.toLowerCase()),
         ),
-    [items, itemQuery, itemStatus],
+    [items, itemQuery, itemStatus, itemAuxFilter],
   );
 
   if (!user) return null;
@@ -192,6 +196,36 @@ export function AuditDetailPage({ id }: { id: string }) {
             <ProgressBar value={audit.progress} />
           </Card>
 
+          <Card className="p-4">
+              <h3 className="mb-3 text-sm font-bold">Avance por auxiliar</h3>
+              {audit.assignedTo.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sin auxiliares asignados.</p>
+              ) : (
+                <div className="space-y-3">
+                  {audit.assignedTo.map((auxId) => {
+                    const aux = getUserById(auxId);
+                    const auxItems = items.filter((i) => i.assignedTo === auxId);
+                    const auxTotal = auxItems.length;
+                    const auxCounted = auxItems.filter((i) => i.countedQty !== null).length;
+                    const auxSent = auxItems.filter((i) => i.status === "enviado" || i.status === "aprobado").length;
+                    const auxPct = auxTotal > 0 ? Math.round((auxCounted / auxTotal) * 100) : 0;
+                    return (
+                      <div key={auxId} className="rounded-lg border p-3">
+                        <div className="mb-2 flex items-center justify-between text-sm">
+                          <span className="font-medium">{aux?.name ?? auxId}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {auxCounted}/{auxTotal} contados · {auxSent} enviados
+                          </span>
+                        </div>
+                        <ProgressBar value={auxPct} />
+                        <div className="mt-1 text-right text-xs text-muted-foreground">{auxPct}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-4">
               <h3 className="mb-3 text-sm font-bold">Detalle</h3>
@@ -247,6 +281,11 @@ export function AuditDetailPage({ id }: { id: string }) {
 
                 <div>
                   <h3 className="mb-2 text-sm font-bold">Auxiliares asignados</h3>
+                  {audit.warehouse && (
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      Mostrando auxiliares del almacén <span className="font-medium">{audit.warehouse}</span>
+                    </p>
+                  )}
                   <div className="grid gap-2 sm:grid-cols-2">
                     {auxiliares.map((a) => (
                       <label key={a.id} className="flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm hover:bg-muted/50">
@@ -290,7 +329,7 @@ export function AuditDetailPage({ id }: { id: string }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="todos">Todos los estados</SelectItem>
                 {(["pendiente", "contado", "enviado", "aprobado", "devuelto"] as CountStatus[]).map((s) => (
                   <SelectItem key={s} value={s}>
                     {COUNT_STATUS_LABELS[s]}
@@ -298,6 +337,24 @@ export function AuditDetailPage({ id }: { id: string }) {
                 ))}
               </SelectContent>
             </Select>
+            {audit.assignedTo.length > 1 && (
+              <Select value={itemAuxFilter} onValueChange={setItemAuxFilter}>
+                <SelectTrigger className="sm:w-52">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los auxiliares</SelectItem>
+                  {audit.assignedTo.map((auxId) => {
+                    const aux = getUserById(auxId);
+                    return (
+                      <SelectItem key={auxId} value={auxId}>
+                        {aux?.name ?? auxId}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            )}
             {canManage && (
               <Button variant="outline" className="gap-2 sm:ml-auto" onClick={() => setAddOpen(true)}>
                 <Plus className="h-4 w-4" /> Agregar productos
