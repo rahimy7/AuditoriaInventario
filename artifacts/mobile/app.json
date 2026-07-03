@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.inventcontrol.mobile",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ]
