@@ -68,6 +68,13 @@ catalog:
 
 autoInstallPeers: false
 
+# pnpm 10 refuses install when any dependency has an "ignored" build script.
+# EAS Build uses pnpm 10.14 which does NOT honor the `onlyBuiltDependencies` list
+# stored in this file when the lockfile was produced by pnpm 11, so we opt into
+# the escape hatch that allows every package to run its build scripts. This is
+# only relevant during install; runtime remains unaffected.
+dangerouslyAllowAllBuilds: true
+
 onlyBuiltDependencies:
   - '@swc/core'
   - core-js
