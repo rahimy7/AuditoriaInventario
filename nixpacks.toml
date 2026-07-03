@@ -2,7 +2,13 @@
 # Single-service deployment: API server + web frontend (served as static files)
 
 [variables]
-NODE_VERSION = "22"
+NIXPACKS_NODE_VERSION = "22"
+
+[phases.setup]
+cmds = ["npm install -g pnpm@11.3.0"]
+
+[phases.install]
+cmds = ["pnpm i --frozen-lockfile"]
 
 [phases.build]
 cmds = [
