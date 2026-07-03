@@ -28,11 +28,20 @@ const EMPTY: Draft = { name: "", email: "", role: "auxiliar", warehouse: "", pas
 const ROLES: UserRole[] = ["auxiliar", "supervisor", "gerente"];
 
 export function UsersPage() {
-  const { user, users, audits, createUser, updateUser, deleteUser, getUserAudits, getSupervisorAudits } = useStore();
+  const { user, users, audits, warehouses, createUser, updateUser, deleteUser, getUserAudits, getSupervisorAudits } = useStore();
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "todos">("todos");
   const [editing, setEditing] = useState<{ id: string | null; draft: Draft } | null>(null);
   const [toDelete, setToDelete] = useState<(typeof users)[number] | null>(null);
+
+  const warehouseOptions = useMemo(() => {
+    const fromTable = warehouses.filter((w) => w.active).map((w) => w.name);
+    const legacy = [
+      ...users.map((u) => u.warehouse).filter((w): w is string => !!w),
+      ...audits.map((a) => a.warehouse),
+    ];
+    return Array.from(new Set([...fromTable, ...legacy])).sort();
+  }, [warehouses, users, audits]);
 
   const filtered = useMemo(
     () =>
@@ -236,7 +245,27 @@ export function UsersPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Almacén</Label>
-                <Input value={editing.draft.warehouse} onChange={(e) => update({ warehouse: e.target.value })} placeholder="Opcional" />
+                <Select
+                  value={editing.draft.warehouse || "__none__"}
+                  onValueChange={(v) => update({ warehouse: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un almacén" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sin almacén</SelectItem>
+                    {warehouseOptions.map((w) => (
+                      <SelectItem key={w} value={w}>
+                        {w}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {warehouseOptions.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Aún no hay almacenes registrados. Créalos en la página de Ubicaciones.
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>{editing.id ? "Nueva contraseña" : "Contraseña"}</Label>
