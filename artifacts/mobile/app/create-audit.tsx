@@ -34,7 +34,26 @@ export default function CreateAuditScreen() {
   const [blindForSupervisor, setBlindForSupervisor] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const supervisors = users.filter((u) => u.role === "supervisor");
+  const supervisorsAll = users.filter((u) => u.role === "supervisor" && u.active !== false);
+  const supervisorsInWarehouse = warehouse
+    ? supervisorsAll.filter((u) => u.warehouse === warehouse)
+    : supervisorsAll;
+  const supervisors = supervisorsInWarehouse.length > 0 ? supervisorsInWarehouse : supervisorsAll;
+
+  const handleSelectWarehouse = (w: string) => {
+    setWarehouse(w);
+    // Clear supervisor if they don't belong to the new warehouse
+    if (supervisorId) {
+      const sup = users.find((u) => u.id === supervisorId);
+      if (sup && sup.warehouse !== w) setSupervisorId("");
+    }
+  };
+
+  const handleSelectSupervisor = (sup: { id: string; warehouse?: string }) => {
+    setSupervisorId(sup.id);
+    // Auto-fill warehouse from supervisor if not selected
+    if (!warehouse && sup.warehouse) setWarehouse(sup.warehouse);
+  };
 
   const toggleLine = (line: string) => {
     setSelectedLines((prev) =>
@@ -130,7 +149,7 @@ export default function CreateAuditScreen() {
                 <TouchableOpacity
                   key={w}
                   style={[styles.chip, { backgroundColor: warehouse === w ? colors.primary : colors.muted, borderColor: warehouse === w ? colors.primary : colors.border }]}
-                  onPress={() => setWarehouse(w)}
+                  onPress={() => handleSelectWarehouse(w)}
                 >
                   <Text style={[styles.chipText, { color: warehouse === w ? "#FFFFFF" : colors.secondary }]}>{w}</Text>
                 </TouchableOpacity>
@@ -155,13 +174,23 @@ export default function CreateAuditScreen() {
 
           {/* Supervisor */}
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>Supervisor Asignado *</Text>
+            <Text style={[styles.fieldLabel, { color: colors.text }]}>
+              Supervisor Asignado *
+              {warehouse && supervisorsInWarehouse.length > 0 && (
+                <Text style={[styles.fieldHint, { color: colors.mutedForeground }]}> — filtrados por {warehouse}</Text>
+              )}
+            </Text>
+            {supervisors.length === 0 && (
+              <Text style={[styles.fieldHint, { color: colors.mutedForeground }]}>
+                No hay supervisores{warehouse ? ` en ${warehouse}` : ""} disponibles.
+              </Text>
+            )}
             <View style={styles.chipGroup}>
               {supervisors.map((s) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[styles.supervisorChip, { backgroundColor: supervisorId === s.id ? colors.primary : colors.muted, borderColor: supervisorId === s.id ? colors.primary : colors.border }]}
-                  onPress={() => setSupervisorId(s.id)}
+                  onPress={() => handleSelectSupervisor(s)}
                 >
                   <View style={[styles.supAvatar, { backgroundColor: supervisorId === s.id ? "rgba(255,255,255,0.2)" : colors.surface }]}>
                     <Text style={[styles.supAvatarText, { color: supervisorId === s.id ? "#FFFFFF" : colors.primary }]}>{s.name.charAt(0)}</Text>

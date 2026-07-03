@@ -53,7 +53,9 @@ export default function AuditDetailScreen() {
     ? (viewItems.length > 0 ? Math.round((counted / viewItems.length) * 100) : 0)
     : audit.progress;
 
-  const auxiliares = users.filter((u) => u.role === "auxiliar");
+  const auxiliaresAll = users.filter((u) => u.role === "auxiliar" && u.active !== false);
+  const auxiliaresInWarehouse = auxiliaresAll.filter((u) => u.warehouse === audit.warehouse);
+  const auxiliares = auxiliaresInWarehouse.length > 0 ? auxiliaresInWarehouse : auxiliaresAll;
 
   const handleAssign = async () => {
     await assignUsers(audit.id, selectedUsers);
