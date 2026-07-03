@@ -7,8 +7,8 @@ import {
   TouchableOpacity, View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ALL_USERS } from "@/contexts/AuthContext";
-import { useAuditContext } from "@/contexts/AuditContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { isBlindForSupervisor, useAuditContext } from "@/contexts/AuditContext";
 import { useColors } from "@/hooks/useColors";
 import StatusBadge from "@/components/StatusBadge";
 
@@ -16,7 +16,8 @@ export default function ReviewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { getAudit, getAuditItems, reviewItem, updateAuditStatus } = useAuditContext();
+  const { getAudit, getAuditItems, reviewItem, updateAuditStatus, users } = useAuditContext();
+  const { user } = useAuth();
   const router = useRouter();
   const [reviewModal, setReviewModal] = useState<{ itemId: string; action: "approve" | "return" } | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
@@ -31,6 +32,7 @@ export default function ReviewScreen() {
     </View>
   );
 
+  const blindSup = isBlindForSupervisor(audit) && user?.role === "supervisor";
   const pendingReview = sentItems.filter((i) => i.status === "enviado");
   const approved = sentItems.filter((i) => i.status === "aprobado");
   const returned = sentItems.filter((i) => i.status === "devuelto");
@@ -60,9 +62,10 @@ export default function ReviewScreen() {
     ]);
   };
 
-  const getUser = (uid: string) => ALL_USERS.find((u) => u.id === uid);
+  const getUser = (uid: string) => users.find((u) => u.id === uid);
 
   const diffColor = (item: typeof items[0]) => {
+    if (blindSup) return colors.primary;
     if (item.countedQty === null) return colors.mutedForeground;
     if (item.countedQty === item.systemQty) return colors.success;
     return colors.error;
@@ -117,7 +120,7 @@ export default function ReviewScreen() {
               </View>
               {sectionItems.map((item) => {
                 const assignedUser = getUser(item.assignedTo);
-                const hasDiff = item.countedQty !== null && item.countedQty !== item.systemQty;
+                const hasDiff = !blindSup && item.countedQty !== null && item.countedQty !== item.systemQty;
                 return (
                   <View key={item.id} style={[styles.itemCard, { backgroundColor: colors.card, borderColor: hasDiff ? `${colors.error}40` : colors.border }]}>
                     <View style={styles.itemTop}>
@@ -129,10 +132,12 @@ export default function ReviewScreen() {
                       <View style={styles.itemRight}>
                         <StatusBadge status={item.status} type="count" size="sm" />
                         <View style={styles.qtyRow}>
-                          <View style={[styles.qtyBox, { backgroundColor: colors.infoLight }]}>
-                            <Text style={[styles.qtyLabel, { color: colors.info }]}>Sistema</Text>
-                            <Text style={[styles.qtyNum, { color: colors.info }]}>{item.systemQty}</Text>
-                          </View>
+                          {!blindSup && (
+                            <View style={[styles.qtyBox, { backgroundColor: colors.infoLight }]}>
+                              <Text style={[styles.qtyLabel, { color: colors.info }]}>Sistema</Text>
+                              <Text style={[styles.qtyNum, { color: colors.info }]}>{item.systemQty}</Text>
+                            </View>
+                          )}
                           <View style={[styles.qtyBox, { backgroundColor: hasDiff ? colors.errorLight : colors.successLight }]}>
                             <Text style={[styles.qtyLabel, { color: diffColor(item) }]}>Contado</Text>
                             <Text style={[styles.qtyNum, { color: diffColor(item) }]}>{item.countedQty ?? "—"}</Text>

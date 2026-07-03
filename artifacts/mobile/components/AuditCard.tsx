@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import type { Audit } from "@/contexts/AuditContext";
+import { isBlindForAuxiliar, isBlindForSupervisor, type Audit } from "@/contexts/AuditContext";
 import { useColors } from "@/hooks/useColors";
 import StatusBadge from "./StatusBadge";
 
@@ -16,6 +16,7 @@ export default function AuditCard({ audit, onPress }: Props) {
   const router = useRouter();
 
   const handlePress = onPress ?? (() => router.push(`/audit/${audit.id}`));
+  const isBlind = isBlindForAuxiliar(audit) || isBlindForSupervisor(audit);
 
   return (
     <TouchableOpacity
@@ -43,7 +44,7 @@ export default function AuditCard({ audit, onPress }: Props) {
           <Feather name="map-pin" size={12} color={colors.mutedForeground} />
           <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{audit.location}</Text>
         </View>
-        {audit.blindCount && (
+        {isBlind && (
           <>
             <View style={styles.metaDot} />
             <View style={[styles.blindBadge, { backgroundColor: "#EDE9FE" }]}>

@@ -30,6 +30,7 @@ function RootLayoutNav() {
       <Stack.Screen name="audit/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="count/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="review/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="count-detail/[auditId]" options={{ headerShown: false }} />
       <Stack.Screen name="scanner" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="create-audit" options={{ headerShown: false, presentation: "modal" }} />

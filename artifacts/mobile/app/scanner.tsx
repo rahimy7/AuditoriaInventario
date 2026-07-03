@@ -6,6 +6,7 @@ import {
   Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAuditContext } from "@/contexts/AuditContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -13,11 +14,30 @@ export default function ScannerScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { returnId } = useLocalSearchParams<{ returnId?: string }>();
-  const { searchProducts } = useAuditContext();
+  const { returnId, auditId } = useLocalSearchParams<{ returnId?: string; auditId?: string }>();
+  const { searchProducts, countItems } = useAuditContext();
+  const { user } = useAuth();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<ReturnType<typeof searchProducts>[0] | null>(null);
   const [notFound, setNotFound] = useState(false);
+
+  // When launched from an auxiliary's counting sheet, resolve a scanned code to
+  // their count item in this audit and open it directly to enter the quantity.
+  const openInAudit = (productCode: string) => {
+    if (!auditId) return;
+    const item = countItems.find(
+      (i) => i.auditId === auditId
+        && i.product.code.toLowerCase() === productCode.toLowerCase()
+        && (!user || i.assignedTo === user.id)
+    );
+    if (item) { router.replace({ pathname: "/audit/[id]", params: { id: auditId, scanItem: item.id } }); return; }
+    const inCatalog = searchProducts(productCode)[0];
+    if (inCatalog && inCatalog.code.toLowerCase() === productCode.toLowerCase()) {
+      Alert.alert("Producto no asignado", `${inCatalog.code} no está en tu hoja de conteo de esta auditoría.`);
+    } else {
+      handleSearch(productCode);
+    }
+  };
 
   const handleSearch = (query: string) => {
     setCode(query);
@@ -35,7 +55,9 @@ export default function ScannerScreen() {
 
   const handleSelect = () => {
     if (!result) return;
-    if (returnId) {
+    if (auditId) {
+      openInAudit(result.code);
+    } else if (returnId) {
       router.back();
     } else {
       router.push(`/search?query=${encodeURIComponent(result.code)}`);
@@ -43,8 +65,12 @@ export default function ScannerScreen() {
   };
 
   const simulateScan = (code: string) => {
-    handleSearch(code);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (auditId) {
+      openInAudit(code);
+    } else {
+      handleSearch(code);
+    }
   };
 
   const DEMO_CODES = ["001-MART", "002-TADR", "003-TORN", "005-TUBE", "013-GUAD"];

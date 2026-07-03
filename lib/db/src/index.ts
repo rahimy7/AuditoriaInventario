@@ -10,7 +10,16 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const connectionString = process.env.DATABASE_URL;
+
+// Hosted Postgres (Neon, Replit, most managed providers) requires TLS. Enable it
+// when the URL asks for it or points at a known managed host.
+const needsSsl = /sslmode=require|neon\.tech|\.aws\.|render\.com|supabase\.co/.test(connectionString);
+
+export const pool = new Pool({
+  connectionString,
+  ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
+});
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";

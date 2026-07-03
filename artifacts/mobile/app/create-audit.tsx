@@ -7,11 +7,11 @@ import {
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ALL_USERS, useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAuditContext } from "@/contexts/AuditContext";
 import { useColors } from "@/hooks/useColors";
 
-const WAREHOUSES = ["Almacén Central", "Almacén Norte", "Almacén Sur", "Almacén Este"];
+const FALLBACK_WAREHOUSES = ["Almacén Central", "Almacén Norte", "Almacén Sur", "Almacén Este"];
 const LINES = ["Ferretería", "Hidráulica", "Instalaciones", "Materiales", "Acabados", "EPP", "Jardín"];
 const CATEGORIES = ["Herramientas", "Eléctricos", "Tornillería", "Pinturas", "Plomería", "Construcción", "Seguridad", "Abrasivos", "Riego"];
 
@@ -19,8 +19,10 @@ export default function CreateAuditScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { createAudit } = useAuditContext();
+  const { createAudit, users, warehouses } = useAuditContext();
   const router = useRouter();
+
+  const WAREHOUSES = warehouses.length > 0 ? warehouses.filter((w) => w.active).map((w) => w.name) : FALLBACK_WAREHOUSES;
 
   const [name, setName] = useState("");
   const [warehouse, setWarehouse] = useState("");
@@ -28,10 +30,11 @@ export default function CreateAuditScreen() {
   const [supervisorId, setSupervisorId] = useState("");
   const [selectedLines, setSelectedLines] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [blindCount, setBlindCount] = useState(false);
+  const [blindForAuxiliar, setBlindForAuxiliar] = useState(false);
+  const [blindForSupervisor, setBlindForSupervisor] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const supervisors = ALL_USERS.filter((u) => u.role === "supervisor");
+  const supervisors = users.filter((u) => u.role === "supervisor");
 
   const toggleLine = (line: string) => {
     setSelectedLines((prev) =>
@@ -44,6 +47,27 @@ export default function CreateAuditScreen() {
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
   };
+
+  const renderBlindToggle = (active: boolean, title: string, desc: string, onToggle: () => void) => (
+    <View style={[styles.toggleCard, { backgroundColor: active ? "#EDE9FE" : colors.muted, borderColor: active ? "#7C3AED" : colors.border }]}>
+      <View style={styles.toggleLeft}>
+        <View style={[styles.toggleIcon, { backgroundColor: active ? "#7C3AED" : colors.surface }]}>
+          <Feather name={active ? "eye-off" : "eye"} size={18} color={active ? "#FFFFFF" : colors.mutedForeground} />
+        </View>
+        <View style={styles.toggleInfo}>
+          <Text style={[styles.toggleTitle, { color: active ? "#4C1D95" : colors.text }]}>{title}</Text>
+          <Text style={[styles.toggleDesc, { color: active ? "#6D28D9" : colors.mutedForeground }]}>{desc}</Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        style={[styles.toggleSwitch, { backgroundColor: active ? "#7C3AED" : colors.border }]}
+        onPress={onToggle}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.toggleThumb, { transform: [{ translateX: active ? 18 : 0 }] }]} />
+      </TouchableOpacity>
+    </View>
+  );
 
   const handleCreate = async () => {
     if (!name.trim()) { Alert.alert("Campo requerido", "Ingresa un nombre para la auditoría."); return; }
@@ -62,7 +86,8 @@ export default function CreateAuditScreen() {
       createdBy: user?.id ?? "u5",
       lines: selectedLines,
       categories: selectedCategories,
-      blindCount,
+      blindForAuxiliar,
+      blindForSupervisor,
     });
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsCreating(false);
@@ -151,26 +176,24 @@ export default function CreateAuditScreen() {
             </View>
           </View>
 
-          {/* Blind Count toggle */}
-          <View style={[styles.toggleCard, { backgroundColor: blindCount ? "#EDE9FE" : colors.muted, borderColor: blindCount ? "#7C3AED" : colors.border }]}>
-            <View style={styles.toggleLeft}>
-              <View style={[styles.toggleIcon, { backgroundColor: blindCount ? "#7C3AED" : colors.surface }]}>
-                <Feather name="eye-off" size={18} color={blindCount ? "#FFFFFF" : colors.mutedForeground} />
-              </View>
-              <View style={styles.toggleInfo}>
-                <Text style={[styles.toggleTitle, { color: blindCount ? "#4C1D95" : colors.text }]}>Conteo a Ciegas</Text>
-                <Text style={[styles.toggleDesc, { color: blindCount ? "#6D28D9" : colors.mutedForeground }]}>
-                  Auxiliares y supervisores no ven el stock del sistema
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.toggleSwitch, { backgroundColor: blindCount ? "#7C3AED" : colors.border }]}
-              onPress={() => setBlindCount((v) => !v)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.toggleThumb, { transform: [{ translateX: blindCount ? 18 : 0 }] }]} />
-            </TouchableOpacity>
+          {/* Blind count per role */}
+          <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { color: colors.text }]}>Conteo a Ciegas</Text>
+            <Text style={[styles.fieldHint, { color: colors.mutedForeground }]}>
+              Oculta el stock del sistema al rol seleccionado. Si no está activo, sí puede verlo.
+            </Text>
+            {renderBlindToggle(
+              blindForAuxiliar,
+              "Ciego para Auxiliar",
+              "El auxiliar no ve el stock al contar",
+              () => setBlindForAuxiliar((v) => !v)
+            )}
+            {renderBlindToggle(
+              blindForSupervisor,
+              "Ciego para Supervisor",
+              "El supervisor no ve el stock al revisar",
+              () => setBlindForSupervisor((v) => !v)
+            )}
           </View>
 
           {/* Lines */}
@@ -237,6 +260,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 20 },
   field: { gap: 8 },
   fieldLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  fieldHint: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: -2 },
   inputWrap: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, height: 48 },
   input: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
   chipGroup: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Alert, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuditContext } from "@/contexts/AuditContext";
-import { ALL_USERS, type User, type UserRole } from "@/contexts/AuthContext";
+import { type User, type UserRole } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -21,13 +21,13 @@ const ROLE_COLORS: Record<UserRole, string> = {
 export default function UsersScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { audits, getUserAudits } = useAuditContext();
+  const { audits, users, getUserAudits } = useAuditContext();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<User | null>(null);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
 
-  const filtered = ALL_USERS.filter(
+  const filtered = users.filter(
     (u) =>
       !search.trim() ||
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -61,7 +61,7 @@ export default function UsersScreen() {
         {(["auxiliar", "supervisor", "gerente"] as UserRole[]).map((role) => (
           <View key={role} style={styles.summaryItem}>
             <Text style={[styles.summaryCount, { color: ROLE_COLORS[role] }]}>
-              {ALL_USERS.filter((u) => u.role === role).length}
+              {users.filter((u) => u.role === role).length}
             </Text>
             <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>{ROLE_LABELS[role]}s</Text>
           </View>
